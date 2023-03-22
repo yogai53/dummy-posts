@@ -24,10 +24,11 @@ export default function Home() {
 
   // Use Effect: Set search based on query params
   React.useEffect(() => {
+    console.log("search", search);
     if (search) {
       setSearchTerm(Array.isArray(search) ? search[0] : search);
     }
-  }, []);
+  }, [search]);
 
   // Use Effect: Set filters from the post data and based on query params
   React.useEffect(() => {
