@@ -26,13 +26,13 @@ export default function Search({ searchTerm, handleSearchTerm }: IProps) {
   };
 
   return (
-    <div>
-      <input
-        name="search"
-        placeholder="Type here..."
-        onChange={handleSearchChange}
-        value={search}
-      />
-    </div>
+    <input
+      name="search"
+      placeholder="Type here..."
+      onChange={handleSearchChange}
+      value={search}
+      className="w-full p-2 border border-solid rounded-md outline-none border-slate-300"
+      autoComplete="off"
+    />
   );
 }

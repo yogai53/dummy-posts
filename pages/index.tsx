@@ -1,4 +1,5 @@
 import { Filters, Main, Posts, Search, Sidebar } from "@/components";
+import NoResults from "@/components/NoResults";
 import { IPostsData, Tag, TagMap } from "@/types/post";
 import Head from "next/head";
 import { useRouter } from "next/router";
@@ -12,7 +13,7 @@ export default function Home() {
 
   const router = useRouter();
 
-  const fetchPosts = async () => {
+  const fetchPosts = React.useCallback(async () => {
     try {
       setIsLoading(true);
       const postsData = await fetch("https://dummyjson.com/posts");
@@ -24,7 +25,7 @@ export default function Home() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   React.useEffect(() => {
     fetchPosts();
@@ -43,16 +44,28 @@ export default function Home() {
   }, [postsData]);
 
   // On Search Term change
-  const handleSearchTerm = (searchTerm: string) => {
+  const handleSearchTerm = React.useCallback((searchTerm: string) => {
     setSearchTerm(searchTerm);
-  };
+  }, []);
 
   // On Filter Change
-  const handleFilterChange = (tag: Tag, enabled = true) => {
+  const handleFilterChange = React.useCallback(
+    (tag: Tag, enabled = true) => {
+      const tagMapClone = { ...tagMap };
+      tagMapClone[tag] = enabled;
+      setTagMap(tagMapClone);
+    },
+    [tagMap]
+  );
+
+  // Clear filters
+  const clearAllFilters = React.useCallback(() => {
     const tagMapClone = { ...tagMap };
-    tagMapClone[tag] = enabled;
+    for (const tag in tagMapClone) {
+      tagMapClone[tag] = false;
+    }
     setTagMap(tagMapClone);
-  };
+  }, [tagMap]);
 
   // Filtered Keys
   const filteredKeys = React.useMemo(() => {
@@ -89,23 +102,47 @@ export default function Home() {
       <Head>
         <title>Posts</title>
       </Head>
-
-      <div className="flex">
-        <Sidebar>
-          <>
-            <Search
-              searchTerm={searchTerm}
-              handleSearchTerm={handleSearchTerm}
+      <div>
+        <aside className="fixed w-1/5 h-full p-4 border-r-2 border-solid border-slate-300 bg-slate-200">
+          <Sidebar>
+            <>
+              <div className="mt-10">
+                <p className="mb-2 text-xl">Search</p>
+                <Search
+                  searchTerm={searchTerm}
+                  handleSearchTerm={handleSearchTerm}
+                />
+              </div>
+              <div className="mt-20">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xl">Filters</p>
+                  <div
+                    className="text-sm underline cursor-pointer text-slate-600"
+                    onClick={clearAllFilters}
+                  >
+                    Clear All
+                  </div>
+                </div>
+                <Filters
+                  initialTagMap={tagMap}
+                  handleFilterChange={handleFilterChange}
+                />
+              </div>
+            </>
+          </Sidebar>
+        </aside>
+        <div className="p-4 sm:ml-80">
+          {filteredPosts.length ? (
+            <Posts
+              posts={filteredPosts}
+              total={postsData.total}
+              search={searchTerm}
+              tagMap={tagMap}
             />
-            <Filters
-              initialTagMap={tagMap}
-              handleFilterChange={handleFilterChange}
-            />
-          </>
-        </Sidebar>
-        <Main>
-          <Posts posts={filteredPosts} total={postsData.total} />
-        </Main>
+          ) : (
+            <NoResults />
+          )}
+        </div>
       </div>
     </>
   );
