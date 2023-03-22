@@ -118,10 +118,6 @@ export default function Home() {
     return <Loading />;
   }
 
-  if (!postsData) {
-    return <Error />;
-  }
-
   return (
     <>
       <Head>
