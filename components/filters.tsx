@@ -19,6 +19,7 @@ export default function Filters({ initialTagMap, handleFilterChange }: IProps) {
         <div key={tag} className="mb-1 cursor-pointer">
           <input
             id={tag}
+            className="cursor-pointer"
             type="checkbox"
             name={tag}
             checked={tagMap[tag]}
@@ -28,7 +29,6 @@ export default function Filters({ initialTagMap, handleFilterChange }: IProps) {
               setTagMap(tagMapClone);
               handleFilterChange(tag, e.target.checked);
             }}
-            className="cursor-pointer"
           />
           <label
             htmlFor={tag}

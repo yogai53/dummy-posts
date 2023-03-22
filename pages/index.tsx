@@ -1,4 +1,5 @@
 import { Filters, Main, Posts, Search, Sidebar } from "@/components";
+import Error from "@/components/Error";
 import Loading from "@/components/Loading";
 import NoResults from "@/components/NoResults";
 import { IPostsData, Tag, TagMap } from "@/types/post";
@@ -14,7 +15,36 @@ export default function Home() {
   const [searchTerm, setSearchTerm] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
   const [tagMap, setTagMap] = React.useState<TagMap>({});
+  const [showMenu, setShowMenu] = React.useState(false);
 
+  // Use Effect: Fetch Posts
+  React.useEffect(() => {
+    fetchPosts();
+  }, []);
+
+  // Use Effect: Set search based on query params
+  React.useEffect(() => {
+    if (search) {
+      setSearchTerm(Array.isArray(search) ? search[0] : search);
+    }
+  }, []);
+
+  // Use Effect: Set filters from the post data and based on query params
+  React.useEffect(() => {
+    if (!postsData) return;
+    let tagMap: TagMap = {};
+    let initFilters = Array.isArray(filters) ? filters : [filters];
+
+    postsData.posts.forEach((post) => {
+      post.tags.forEach((tag) => {
+        tagMap[tag] = initFilters.includes(tag) ? true : false;
+      });
+    });
+
+    setTagMap(tagMap);
+  }, [postsData]);
+
+  // Fetch Posts from API
   const fetchPosts = React.useCallback(async () => {
     try {
       setIsLoading(true);
@@ -28,30 +58,6 @@ export default function Home() {
       setIsLoading(false);
     }
   }, []);
-
-  React.useEffect(() => {
-    fetchPosts();
-  }, []);
-
-  React.useEffect(() => {
-    if (search) {
-      setSearchTerm(Array.isArray(search) ? search[0] : search);
-    }
-  }, [search]);
-
-  React.useEffect(() => {
-    if (!postsData) return;
-    let tagMap: TagMap = {};
-    let initFilters = Array.isArray(filters) ? filters : [filters];
-
-    postsData.posts.forEach((post) => {
-      post.tags.forEach((tag) => {
-        tagMap[tag] = initFilters.includes(tag) ? true : false;
-      });
-    });
-
-    setTagMap(tagMap);
-  }, [postsData, filters]);
 
   // On Search Term change
   const handleSearchTerm = React.useCallback((searchTerm: string) => {
@@ -81,6 +87,8 @@ export default function Home() {
       tagMapClone[tag] = false;
     }
     setTagMap(tagMapClone);
+    router.query.filters = [];
+    router.push(router);
   }, [tagMap]);
 
   // Filtered Keys
@@ -103,14 +111,14 @@ export default function Home() {
           filteredKeys.every((tag) => post.tags.includes(tag))
         );
     return filteredResults;
-  }, [postsData, searchTerm, tagMap, filteredKeys]);
+  }, [postsData, searchTerm, filteredKeys]);
 
   if (isLoading) {
     return <Loading />;
   }
 
   if (!postsData) {
-    return <>Something went wrong. Posts data not available.</>;
+    return <Error />;
   }
 
   return (
@@ -119,17 +127,27 @@ export default function Home() {
         <title>Posts</title>
       </Head>
       <div>
-        <aside className="fixed w-1/5 h-full p-4 border-r-2 border-solid border-slate-300 bg-slate-200">
+        <aside
+          className={`${
+            !showMenu ? "hidden sm:block" : ""
+          } border border-solid border-slate-300 m-2 h-full p-4 sm:fixed sm:w-1/5 sm:border-r-2 bg-slate-200 `}
+        >
           <Sidebar>
             <>
-              <div className="mt-10">
+              <div
+                className="float-right underline sm:hidden"
+                onClick={() => setShowMenu(false)}
+              >
+                (X) Close
+              </div>
+              <div className="sm:mt-10">
                 <p className="mb-2 text-xl">Search</p>
                 <Search
                   searchTerm={searchTerm}
                   handleSearchTerm={handleSearchTerm}
                 />
               </div>
-              <div className="mt-20">
+              <div className="mt-5 sm:mt-20">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-xl">Filters</p>
                   <div
@@ -143,11 +161,29 @@ export default function Home() {
                   initialTagMap={tagMap}
                   handleFilterChange={handleFilterChange}
                 />
+                <button
+                  className="w-full p-3 mt-4 text-lg text-white border border-solid border-slate-500 bg-slate-700"
+                  onClick={() => setShowMenu(false)}
+                >
+                  Submit
+                </button>
               </div>
             </>
           </Sidebar>
         </aside>
-        <div className="p-4 sm:ml-80">
+        {!showMenu && (
+          <div
+            className="left-0 p-3 m-2 bg-white border border-solid cursor-pointer w-100 sm:hidden top-1 border-slate-700"
+            onClick={() => {
+              setShowMenu(true);
+            }}
+          >
+            Show Menu
+          </div>
+        )}
+        <div
+          className={`${showMenu ? "hidden sm:block" : ""} p-4 mt-0 sm:ml-80 `}
+        >
           {filteredPosts.length ? (
             <Posts
               posts={filteredPosts}

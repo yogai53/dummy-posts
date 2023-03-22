@@ -14,7 +14,7 @@ export default function Posts({ posts, total, search, tagMap }: IProps) {
       <p className="sticky top-0 p-2 py-5 text-xl bg-white border-b border-solid">
         POST LISTED: {total}
       </p>
-      <div className="mt-10">
+      <div className="mt-10 scroll-mt-100">
         {posts.map((post, index) => (
           <div
             key={post.id}

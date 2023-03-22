@@ -11,7 +11,7 @@ export default function Search({ searchTerm, handleSearchTerm }: IProps) {
 
   React.useEffect(() => {
     setSearch(searchTerm);
-  }, []);
+  }, [searchTerm]);
 
   const debounceCallback = React.useCallback(
     debounce((searchTerm) => {
