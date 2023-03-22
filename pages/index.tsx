@@ -1,4 +1,5 @@
 import { Filters, Main, Posts, Search, Sidebar } from "@/components";
+import Loading from "@/components/Loading";
 import NoResults from "@/components/NoResults";
 import { IPostsData, Tag, TagMap } from "@/types/post";
 import Head from "next/head";
@@ -6,12 +7,13 @@ import { useRouter } from "next/router";
 import React from "react";
 
 export default function Home() {
+  const router = useRouter();
+  const { search, filters } = router.query;
+
   const [postsData, setPostsData] = React.useState<IPostsData>();
   const [searchTerm, setSearchTerm] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
   const [tagMap, setTagMap] = React.useState<TagMap>({});
-
-  const router = useRouter();
 
   const fetchPosts = React.useCallback(async () => {
     try {
@@ -32,20 +34,30 @@ export default function Home() {
   }, []);
 
   React.useEffect(() => {
+    if (search) {
+      setSearchTerm(Array.isArray(search) ? search[0] : search);
+    }
+  }, [search]);
+
+  React.useEffect(() => {
     if (!postsData) return;
     let tagMap: TagMap = {};
+    let initFilters = Array.isArray(filters) ? filters : [filters];
+
     postsData.posts.forEach((post) => {
       post.tags.forEach((tag) => {
-        tagMap[tag] = false;
+        tagMap[tag] = initFilters.includes(tag) ? true : false;
       });
     });
 
     setTagMap(tagMap);
-  }, [postsData]);
+  }, [postsData, filters]);
 
   // On Search Term change
   const handleSearchTerm = React.useCallback((searchTerm: string) => {
     setSearchTerm(searchTerm);
+    router.query.search = searchTerm;
+    router.push(router);
   }, []);
 
   // On Filter Change
@@ -54,6 +66,10 @@ export default function Home() {
       const tagMapClone = { ...tagMap };
       tagMapClone[tag] = enabled;
       setTagMap(tagMapClone);
+      router.query.filters = Object.keys(tagMapClone)
+        .filter((tag) => tagMapClone[tag] == true)
+        .map((tag) => tag);
+      router.push(router);
     },
     [tagMap]
   );
@@ -90,7 +106,7 @@ export default function Home() {
   }, [postsData, searchTerm, tagMap, filteredKeys]);
 
   if (isLoading) {
-    return <>Loading...</>;
+    return <Loading />;
   }
 
   if (!postsData) {
