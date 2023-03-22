@@ -163,7 +163,7 @@ export default function Home() {
                   handleFilterChange={handleFilterChange}
                 />
                 <button
-                  className="w-full p-3 mt-4 text-lg text-white border border-solid border-slate-500 bg-slate-700"
+                  className="w-full p-3 mt-4 text-lg text-white border border-solid sm:hidden border-slate-500 bg-slate-700"
                   onClick={() => setShowMenu(false)}
                 >
                   Submit
