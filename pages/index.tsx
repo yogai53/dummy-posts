@@ -178,20 +178,24 @@ export default function Home() {
             Show Menu
           </div>
         )}
-        <div
-          className={`${showMenu ? "hidden sm:block" : ""} p-4 mt-0 sm:ml-80 `}
-        >
-          {filteredPosts.length ? (
-            <Posts
-              posts={filteredPosts}
-              total={postsData.total}
-              search={searchTerm}
-              tagMap={tagMap}
-            />
-          ) : (
-            <NoResults />
-          )}
-        </div>
+        {postsData && (
+          <div
+            className={`${
+              showMenu ? "hidden sm:block" : ""
+            } p-4 mt-0 sm:ml-80 `}
+          >
+            {filteredPosts.length ? (
+              <Posts
+                posts={filteredPosts}
+                total={postsData.total}
+                search={searchTerm}
+                tagMap={tagMap}
+              />
+            ) : (
+              <NoResults />
+            )}
+          </div>
+        )}
       </div>
     </>
   );
